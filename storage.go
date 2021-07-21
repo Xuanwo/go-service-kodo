@@ -294,12 +294,10 @@ func (s *Storage) write(ctx context.Context, path string, r io.Reader, size int6
 	_, err = s.bucket.Stat(s.name, rp)
 	if err == nil {
 		err = s.bucket.Delete(s.name, rp)
-	}
-	if err != nil && checkError(err, responseCodeResourceNotExist) {
-		err = nil
-	}
-
-	if err != nil {
+		if err != nil {
+			return
+		}
+	} else if !checkError(err, responseCodeResourceNotExist) {
 		return
 	}
 
