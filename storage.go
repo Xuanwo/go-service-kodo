@@ -46,29 +46,34 @@ func (s *Storage) createDir(ctx context.Context, path string, opt pairStorageCre
 	// ref: https://developer.qiniu.com/kodo/kb/1705/how-to-create-the-folder-under-the-space
 	rp += "/"
 
-	// kodo `put` doesn't support `overwrite`, so we need to check and delete the dir if exists.
+	// kodo `put` doesn't support `overwrite`, so we need to check whether the dir exists.
 	// ref: [GSP-134](https://github.com/beyondstorage/go-storage/blob/master/docs/rfcs/134-write-behavior-consistency.md)
-	_, err = s.bucket.Stat(s.name, rp)
+	fi, err := s.bucket.Stat(s.name, rp)
 	if err == nil {
-		err = s.bucket.Delete(s.name, rp)
-	}
-	if err != nil && checkError(err, responseCodeResourceNotExist) {
-		err = nil
-	}
+		// The dir is exist.
+		o = s.newObject(true)
+		o.SetLastModified(convertUnixTimestampToTime(fi.PutTime))
+		o.SetContentLength(fi.Fsize)
 
-	if err != nil {
+		var sm ObjectSystemMetadata
+		sm.StorageClass = fi.Type
+		o.SetSystemMetadata(sm)
+	} else if !checkError(err, responseCodeResourceNotExist) {
+		// Something error other then ResourceNotExist happened, return directly.
 		return
+	} else {
+		// The dir is not exist, we should create the dir.
+		uploader := qs.NewFormUploader(s.bucket.Cfg)
+		ret := qs.PutRet{}
+		err = uploader.Put(ctx,
+			&ret, s.putPolicy.UploadToken(s.bucket.Mac), rp, io.LimitReader(nil, 0), 0, nil)
+		if err != nil {
+			return
+		}
+
+		o = s.newObject(false)
 	}
 
-	uploader := qs.NewFormUploader(s.bucket.Cfg)
-	ret := qs.PutRet{}
-	err = uploader.Put(ctx,
-		&ret, s.putPolicy.UploadToken(s.bucket.Mac), rp, io.LimitReader(nil, 0), 0, nil)
-	if err != nil {
-		return
-	}
-
-	o = s.newObject(true)
 	o.Path = path
 	o.ID = rp
 	o.Mode = ModeDir
