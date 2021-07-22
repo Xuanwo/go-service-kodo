@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [v2.2.0] - 2021-07-22
+
+### Added
+
+- ci: Add gofmt action (#34)
+- ci: Add dependabot auto build support (#38)
+- ci: add diff check action (#37)
+
+### Changed
+
+- storage: Implement GSP-134 Write Behavior Consistency (#43)
+- storage: Implement GSP-654 Unify List Behavior (#43)
+
+### Fixed
+
+- ci: Fix workflow not triggered correctly
+- ci: Add token for checkout instead
+
+### Upgraded
+
+- build(deps): Bump github.com/qiniu/go-sdk/v7 from 7.9.6 to 7.9.7 (#32)
+
 ## [v2.1.0] - 2021-06-29
 
 ### Added
@@ -56,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Implement kodo services.
 
+[v2.2.0]: https://github.com/beyondstorage/go-service-kodo/compare/v2.1.0...v2.2.0
 [v2.1.0]: https://github.com/beyondstorage/go-service-kodo/compare/v2.0.0...v2.1.0
 [v2.0.0]: https://github.com/beyondstorage/go-service-kodo/compare/v1.1.0...v2.0.0
 [v1.1.0]: https://github.com/beyondstorage/go-service-kodo/compare/v1.0.0...v1.1.0
