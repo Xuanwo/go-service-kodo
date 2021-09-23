@@ -1,9 +1,9 @@
 package kodo
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"github.com/qiniu/go-sdk/v7/sms/bytes"
 	"io"
 	"net/http"
 	"time"
