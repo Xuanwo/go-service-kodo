@@ -1,7 +1,9 @@
 package kodo
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -293,6 +295,16 @@ func (s *Storage) stat(ctx context.Context, path string, opt pairStorageStat) (o
 
 func (s *Storage) write(ctx context.Context, path string, r io.Reader, size int64, opt pairStorageWrite) (n int64, err error) {
 	rp := s.getAbsPath(path)
+
+	// According to GSP-751, we should allow the user to pass in a nil io.Reader.
+	// ref: https://github.com/beyondstorage/go-storage/blob/master/docs/rfcs/751-write-empty-file-behavior.md
+	if r == nil && size == 0 {
+		r = bytes.NewReader([]byte{})
+	} else if r == nil && size != 0 {
+		return 0, fmt.Errorf("reader is nil but size is not 0")
+	} else {
+		r = io.LimitReader(r, size)
+	}
 
 	// kodo `put` doesn't support `overwrite`, so we need to check and delete the object if exists.
 	// ref: [GSP-134](https://github.com/beyondstorage/go-storage/blob/master/docs/rfcs/134-write-behavior-consistency.md)
