@@ -224,6 +224,17 @@ func (s *Storage) read(ctx context.Context, path string, w io.Writer, opt pairSt
 		return 0, err
 	}
 
+	// ref: https://developer.qiniu.com/kodo/1232/download-process
+	if opt.HasOffset && !opt.HasSize {
+		rangeBytes := fmt.Sprintf("bytes=%d-", opt.Offset)
+		req.Header.Add("Range", rangeBytes)
+	} else if !opt.HasOffset && opt.HasSize {
+		rangeBytes := fmt.Sprintf("bytes=0-%d", opt.Size-1)
+		req.Header.Add("Range", rangeBytes)
+	} else if opt.HasOffset && opt.HasSize {
+		rangeBytes := fmt.Sprintf("bytes=%d-%d", opt.Offset, opt.Offset+opt.Size-1)
+		req.Header.Add("Range", rangeBytes)
+	}
 	resp, err := s.bucket.Client.Do(ctx, req)
 	if err != nil {
 		return 0, err
